@@ -53,24 +53,27 @@ Erlaubte Stammpfade stehen in `FAMTASK_REMOTE_ROOTS`, Standard
 
 Die vorgesehenen Projekte sind [famtask_docker](https://github.com/nanoemilios/famtask_docker) und [famtask_proxmox](https://github.com/nanoemilios/famtask_proxmox).
 
-**Korrekte Befehle** (Compose-Datei liegt im Repository-Stamm):
+**Befehle** (Compose-Datei liegt im Repository-Stamm, `.env` unter `docker/`):
 
 ```bash
 cd /opt/famtask_docker
 cp docker/.env.example docker/.env     # Passwoerter anpassen
-docker compose up -d --build
+docker compose --env-file docker/.env up -d --build
 bash scripts/setup.sh
 ```
 
-**Bekannter Widerspruch:** Die Skripte in `famtask_proxmox` rufen weiterhin
-`docker/docker-compose.yml` auf. Diese Datei existiert nicht. Ausserdem liest
-`scripts/setup.sh` die `.env` aus `docker/.env`, waehrend Compose `.env` aus dem
-Arbeitsverzeichnis erwartet. Der dokumentierte Proxmox-Installationspfad ist damit
-weiterhin **nicht** als funktionierend verifiziert. Details:
-[WORKSPACE_COMPARISON.md](WORKSPACE_COMPARISON.md).
+`--env-file docker/.env` ist **noetig**: Compose sucht `.env` sonst im
+Arbeitsverzeichnis und wuerde die in `docker/.env` hinterlegten Passwoerter
+stillschweigend ignorieren.
+
+Stand 2026-10-15: der frueher dokumentierte Widerspruch – die Scripts in
+`famtask_proxmox` riefen die nicht existierende Datei `docker/docker-compose.yml`
+auf – ist behoben. Ein Durchlauf auf einem echten Proxmox-Host steht weiterhin
+aus. Historie: [WORKSPACE_COMPARISON.md](WORKSPACE_COMPARISON.md).
 
 Die Compose-Datei selbst definiert App `8888`, phpMyAdmin `8081` und Datenbank
-`3307` als Host-Ports.
+`3307` als Host-Ports, jeweils ueber die Variablen `APP_PORT`, `PMA_PORT` und
+`DB_PORT` aus `docker/.env` steuerbar.
 
 ## Betrieb und Sicherheit
 

@@ -52,40 +52,79 @@ Deshalb wurden aus dem Docker-Setup nur die echten Aenderungen uebernommen:
 
 Die Setup-Skripte blieben unveraendert.
 
-## Offene Abweichungen: Docker und Proxmox
+## Behobene Abweichung: Docker und Proxmox
 
-**Diese Punkte bestehen weiterhin.** Sie wurden am 2026-10-15 erneut am Dateisystem geprueft und nicht behoben.
+**Diese Punkte sind seit dem 2026-10-15 behoben.** Vorher bestanden sie; die damalige
+Fassung ist unter "Frueher offene Abweichungen" weiter unten festgehalten.
 
-- `famtask_docker` versioniert `docker-compose.yml` im Repository-Stamm. Der Pfad `docker/docker-compose.yml` existiert nicht.
-- Compose erwartet relative Pfade `./php` und `./db/init.sql` und muss daher vom Repository-Stamm aus verwendet werden.
-- `scripts/setup.sh` liest `docker/.env` (`PROJECT_ROOT/docker/.env`). Compose laedt standardmaessig `.env` aus dem Arbeitsverzeichnis; ein Start aus dem Repository-Stamm liest `docker/.env` daher nicht automatisch. Bei angepassten Datenbankwerten koennen Compose und App-Setup unterschiedliche Zugangsdaten verwenden.
+- Die Compose-Datei liegt im Repository-Stamm. Die Scripts in `famtask_proxmox`
+  riefen `docker/docker-compose.yml` auf und wechselten in den Ordner `docker/`;
+  beides ist jetzt entfernt. Compose wird aus dem Repository-Stamm gestartet.
+- `scripts/setup.sh` liest `docker/.env`, Compose suchte `.env` im Arbeitsverzeichnis.
+  Die Passwörter wären stillschweigend ignoriert worden. Jetzt wird die Datei
+  explizit über `--env-file docker/.env` übergeben – in den Proxmox-Scripts, im
+  Docker-README und in der Zusammenfassung der Installer-Ausgabe.
+- `APP_PORT`, `PMA_PORT` und `DB_PORT` standen in `docker/.env`, wurden von
+  `docker-compose.yml` aber nicht ausgewertet: die Host-Ports waren hart codiert.
+  Ein Nutzer konnte den Wert ändern, ohne dass etwas passierte, während die
+  Abschlussmeldung trotzdem den neuen Port nannte. `docker-compose.yml` wertet die
+  Variablen nun aus.
+- `proxmox-install.sh` überschrieb bei jedem Lauf die `.env` und vergab neue
+  Passwörter. Bei einem Update hätte die App den Anschluss an die Datenbank
+  verloren. Vorhandene `.env` wird jetzt nicht mehr überschrieben.
 
-Betroffene Aufrufe, geprueft am 2026-10-15:
+Geprüft mit `bash -n` (Syntax), einem Vergleich aller Compose-Aufrufe und einem
+Test, der das Release-ZIP entpackt und die App daraus startet. **Ein Durchlauf auf
+einem echten Proxmox-Host steht weiterhin aus.**
+
+## Frueher offene Abweichungen (Stand vor dem 2026-10-15)
+
+- `famtask_docker` versioniert `docker-compose.yml` im Repository-Stamm. Der Pfad
+  `docker/docker-compose.yml` existiert nicht.
+- Compose erwartet relative Pfade `./php` und `./db/init.sql` und muss daher vom
+  Repository-Stamm aus verwendet werden.
+- `scripts/setup.sh` liest `docker/.env` (`PROJECT_ROOT/docker/.env`). Compose laedt
+  standardmaessig `.env` aus dem Arbeitsverzeichnis.
+
+Betroffene Aufrufe, damals gezaehlt:
 
 | Datei | Treffer auf `docker/docker-compose.yml` |
 |---|---|
-| `famtask_docker/README.md` | 1 (korrigiert, Befehl ohne `-f`) |
+| `famtask_docker/README.md` | 1 |
 | `famtask_proxmox/proxmox-install.sh` | 3 |
 | `famtask_proxmox/proxmox-install-oneliner.sh` | 2 |
 | `famtask_proxmox/README.md` | 5 |
 | `famtask_proxmox/PROXMOX_INSTALL.md` | 5 |
-| `famtask_docs/DEPLOYMENT.md` | 1 (korrigiert) |
-
-**Status:** In `famtask_docker/README.md` und `DEPLOYMENT.md` ist jetzt vermerkt,
-dass die Skripte in `famtask_proxmox` weiterhin den falschen Pfad verwenden. Die
-Skripte selbst sind **nicht** korrigiert worden. Vor einer produktiven
-Docker-/Proxmox-Installation sollten Compose-Aufruf, Arbeitsverzeichnis und
-`.env`-Quelle gemeinsam in `famtask_proxmox` und `famtask_docker/scripts`
-angeglichen und getestet werden.
+| `famtask_docs/DEPLOYMENT.md` | 1 |
 
 ## Versionsstand
 
 - App-Quellcode: `APP_VERSION` `1.5.0`, `manifest.json` `1.5.0`
-- App-README und CHANGELOG wurden auf 1.5.0 gebracht
-- Der Release-Tag `v1.4.0` und das Release-Artefakt `famtask.zip` sind **nicht**
-  neu gebaut worden. Der [Web-Installer](https://github.com/nanoemilios/famtask_installer)
-  laedt weiterhin von `releases/latest/download/famtask.zip` und meldet daher
-  noch `v1.4.0`, bis ein neues Release veroeffentlicht wird.
+- App-README und CHANGELOG auf 1.5.0
+- Release-Artefakt fuer 1.5.0 gebaut, aber **noch nicht auf GitHub veroeffentlicht**:
+
+  | Eigenschaft | Wert |
+  |---|---|
+  | Datei | `famtask-1.5.0.zip` |
+  | Groesse | 1 134 131 Bytes (1,08 MB) |
+  | SHA-256 | `820a97609f22e13a03b0d62982c634a05ba7bc5288c42febca31f8e49313979d` |
+  | Eintraege | 40 (gegenueber 39 bei v1.4.0) |
+  | Unterschied | ausschliesslich `remote.php` neu |
+  | Quelle | `famtask`-Repository, Stand der Commits vom 2026-10-15 |
+
+  Gegenueber dem Release `v1.4.0` (SHA-256
+  `90f38dfab26a7e92e5c4f54741fda434928af31acf8d13e25d1d9e5846ec6f11`) enthaelt
+  das neue Archiv exakt dieselbe Dateiliste plus `remote.php`. Keine Audio-Dateien,
+  keine Konfiguration, keine Dokumentation.
+
+  Damit der [Web-Installer](https://github.com/nanoemilios/famtask_installer) 1.5.0
+  ausliefert, muss das Archiv als `famtask.zip` an ein Release-Tag `v1.5.0`
+  gehaengt werden – der Installer laedt von `releases/latest/download/famtask.zip`.
+  `APP_VERSION` im Installer steht bereits auf `v1.5.0`.
+
+  Geprueft wurde das Archiv durch Entpacken, PHP-Syntaxpruefung aller drei
+  PHP-Dateien, Laden aller 19 Sprachdateien und einen Start der App aus dem
+  entpackten Stand (`api.php` meldet `app_version` `1.5.0`).
 
 ## Weitere Hinweise
 
