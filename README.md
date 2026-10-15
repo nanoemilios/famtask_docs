@@ -17,11 +17,22 @@ Zentrale Dokumentation fuer FamTask. Diese Sammlung beschreibt die Anwendung, ih
 | [famtask_installer](https://github.com/nanoemilios/famtask_installer) | Web-Installer und Updater fuer Shared Hosting |
 | [famtask_docker](https://github.com/nanoemilios/famtask_docker) | Docker Compose, PHP-Image, Datenbank und Setup-Skripte |
 | [famtask_proxmox](https://github.com/nanoemilios/famtask_proxmox) | Installationsskripte fuer Proxmox, VM oder LXC |
+| [famtask_landingpage](https://github.com/nanoemilios/famtask_landingpage) | Oeffentliche Projektseite |
 | [famtask_docs](https://github.com/nanoemilios/famtask_docs) | Diese zentrale Dokumentation |
 
 ## Dokumentationsstand
 
-Die vier lokalen Projekt-Repositories wurden am 2026-09-29 gegen ihre jeweiligen `origin/main`-Branches geprueft. Die Arbeitsstaende waren sauber und auf denselben Commits wie GitHub. Die konkrete Versions- und Pfadpruefung steht in [WORKSPACE_COMPARISON.md](WORKSPACE_COMPARISON.md).
+Geprueft am **2026-10-15** fuer die sechs lokalen Projektordner in `famtask_split`.
+Alle Arbeitsstaende waren zu Beginn sauber und identisch mit `origin/main`.
+
+Bei dieser Pruefung zeigte sich, dass der Ordner `famtask_split/famtask` nicht
+den aktuellen Entwicklungsstand enthielt: `APP_VERSION` stand dort auf `1.4`, waehrend
+die Arbeitskopie bereits `1.5` enthielt. Der fehlende Stand wurde gespiegelt und
+dokumentiert – Einzelheiten in [WORKSPACE_COMPARISON.md](WORKSPACE_COMPARISON.md).
+
+Der dokumentierte Stand betrifft die Quellstände, **keinen** getesteten
+Produktionsbetrieb. Zwei Widersprueche im Docker-/Proxmox-Installationspfad sind
+weiterhin offen und dort ausdruecklich als offen markiert.
 
 ## Pflege
 

@@ -8,6 +8,12 @@ Der [Web-Installer](https://github.com/nanoemilios/famtask_installer) ist fuer S
 
 Der Release `v1.4.0` enthaelt `famtask.zip`; der SHA-256-Wert ist im [Abgleichsbericht](WORKSPACE_COMPARISON.md) festgehalten. Die lokale Konfiguration `.famtask_cfg.php` und der Audio-Ordner sollen bei Updates erhalten bleiben.
 
+> **Stand 1.5.0:** Der Quellcode im App-Repository ist auf `1.5.0`, das Release-Artefakt
+> `famtask.zip` ist aber weiterhin `v1.4.0`. Der Installer laedt von
+> `releases/latest/download/famtask.zip` und meldet deshalb noch `v1.4.0`, bis ein
+> neues Release veroeffentlicht wird. Fuer die neuen Funktionen ist daher entweder
+> ein neues Release noetig oder eine manuelle Installation aus dem Git-Repository.
+
 ### Manuelle App-Installation
 
 1. [famtask](https://github.com/nanoemilios/famtask) auschecken.
@@ -16,21 +22,67 @@ Der Release `v1.4.0` enthaelt `famtask.zip`; der SHA-256-Wert ist im [Abgleichsb
 
 Die Konfigurationsdatei enthaelt Geheimnisse und gehoert nicht in Git oder in dieses Doku-Repository.
 
+### Externe Musikquellen einrichten
+
+WebDAV, FTP/FTPS und HTTPS/S3 brauchen keine Shell-Zugriffe – Quelle unter
+**Admin → Musikquellen** anlegen. Benoetigt werden die PHP-Extensions `curl` und
+`ftp`, die im Docker-Image enthalten sind.
+
+Fuer **SMB/CIFS und NFS** gilt: PHP kann Netzwerkdateisysteme nicht selbst
+mounten. Der Host mountet, Docker reicht den Pfad nur durch:
+
+```bash
+# 1. Auf dem Host mounten
+sudo mkdir -p /srv/famtask-music
+sudo mount -t cifs //192.168.1.20/musik /srv/famtask-music -o username=NAS,password=GEHEIM,uid=0,gid=0,ro
+ls /srv/famtask-music
+
+# 2. In docker-compose.yml die auskommentierte Zeile aktivieren
+#    - /srv/famtask-music:/mnt/music:ro
+
+# 3. Neu starten
+docker compose up -d
+
+# 4. In FamTask: Art "Gemountetes Laufwerk", Pfad /mnt/music, Modus "Verlinken"
+```
+
+Erlaubte Stammpfade stehen in `FAMTASK_REMOTE_ROOTS`, Standard
+`/mnt,/media,/srv,/net,/Volumes`. Ausserhalb davon liefert `remote.php` HTTP 403.
+
 ### Docker und Proxmox
 
-Die vorgesehenen Projekte sind [famtask_docker](https://github.com/nanoemilios/famtask_docker) und [famtask_proxmox](https://github.com/nanoemilios/famtask_proxmox). **Der dokumentierte Installationspfad ist aktuell blockiert:** Er referenziert eine nicht vorhandene `docker/docker-compose.yml`; ausserdem ist die `.env`-Ladequelle nicht konsistent. Details und betroffene Aufrufe: [WORKSPACE_COMPARISON.md](WORKSPACE_COMPARISON.md).
+Die vorgesehenen Projekte sind [famtask_docker](https://github.com/nanoemilios/famtask_docker) und [famtask_proxmox](https://github.com/nanoemilios/famtask_proxmox).
 
-Die Compose-Datei selbst definiert App `8888`, phpMyAdmin `8081` und Datenbank `3307` als Host-Ports. In der aktuellen Form sollten die Installer nicht als funktionierend vorausgesetzt werden, bevor die Pfade und Umgebungsvariablen korrigiert und getestet sind.
+**Korrekte Befehle** (Compose-Datei liegt im Repository-Stamm):
+
+```bash
+cd /opt/famtask_docker
+cp docker/.env.example docker/.env     # Passwoerter anpassen
+docker compose up -d --build
+bash scripts/setup.sh
+```
+
+**Bekannter Widerspruch:** Die Skripte in `famtask_proxmox` rufen weiterhin
+`docker/docker-compose.yml` auf. Diese Datei existiert nicht. Ausserdem liest
+`scripts/setup.sh` die `.env` aus `docker/.env`, waehrend Compose `.env` aus dem
+Arbeitsverzeichnis erwartet. Der dokumentierte Proxmox-Installationspfad ist damit
+weiterhin **nicht** als funktionierend verifiziert. Details:
+[WORKSPACE_COMPARISON.md](WORKSPACE_COMPARISON.md).
+
+Die Compose-Datei selbst definiert App `8888`, phpMyAdmin `8081` und Datenbank
+`3307` als Host-Ports.
 
 ## Betrieb und Sicherheit
 
+- **FamTask hat keine echte Benutzerverwaltung.** Der Familiencode ist keine Authentifizierung; er steht im Klartext im lokalStorage jedes Geraets, und jeder, der ihn kennt, kann ueber `api.php` Daten lesen und schreiben. **Nicht ungeschuetzt ins Internet stellen** – nur im Heimnetz betreiben oder einen Reverse-Proxy mit Basic-Auth davorsetzen.
 - Echte Passwoerter setzen; keine Beispielwerte oder Container-Defaults fuer produktive Systeme verwenden.
 - Datenbank-Port `3307` und phpMyAdmin-Port `8081` nicht unnoetig oeffentlich freigeben. Zugriff auf App und Admin-Oberflaeche ueber HTTPS und geeignete Zugriffskontrollen absichern.
 - `docker/.env`, `.famtask_cfg.php`, Datenbank-Dumps und persoenliche Familiendaten vertraulich behandeln.
+- Zugangsdaten externer Musikquellen liegen ausschliesslich in `famtask_remotes` und werden von `remote.php` nie an den Client ausgeliefert. Sie gelten trotzdem als Geheimnis: das Volume `db_data` mit den Datenbank-Dumps schuetzen.
 - Vor Updates und Migrationen ein konsistentes Backup der Datenbank sowie benoetigter Nutzdaten wie Audiodateien erstellen.
 - `docker compose down -v` entfernt das benannte Datenbankvolume und kann Daten loeschen. Nur ausfuehren, wenn der Datenverlust beabsichtigt und ein Backup vorhanden ist.
-- Release- und Versionsnummern bei App-Updates abgleichen. Der App-Quellcode meldet Version `1.4`; der Installer verwendet `v1.4.0`.
+- Release- und Versionsnummern bei App-Updates abgleichen. Der App-Quellcode meldet Version `1.5.0`; der Installer verwendet weiterhin `v1.4.0`, bis ein neues Release veroeffentlicht wird.
 
 ## Bekannte Einschraenkung
 
-Diese Dokumentation korrigiert keine Skripte und stellt keinen erfolgreichen Docker-/Proxmox-Test dar. Erst nach Behebung der in [WORKSPACE_COMPARISON.md](WORKSPACE_COMPARISON.md) genannten Pfad- und Env-Datei-Konflikte sollte der Containerstart als verifiziert dokumentiert werden.
+Diese Dokumentation korrigiert keine Skripte und stellt keinen erfolgreichen Docker-/Proxmox-Test dar. Der Containerstart sollte erst nach Behebung der in [WORKSPACE_COMPARISON.md](WORKSPACE_COMPARISON.md) genannten Pfad- und Env-Datei-Konflikte als verifiziert dokumentiert werden.
