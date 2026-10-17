@@ -8,6 +8,7 @@
 | `vendor/react*.production.min.js`, `vendor/babel.min.js` | Lokal mitgelieferte React-Laufzeit und JSX-Transpilierung |
 | `api.php` | Installation, Datenzugriff, Einstellungen, Statistiken, Backup/Restore und iCal-Proxy |
 | `jukebox.php` | Backend-Endpunkte der Jukebox: Album-Scan, Streaming, Cover, Upload, Verwaltung |
+| `id3.php` | Metadaten aus Audiodateien lesen: ID3v2.3/2.4, ID3v1 (MP3) und M4A/MP4, samt eingebettetem Cover |
 | `remote.php` | Externe Musikquellen: WebDAV, FTP/FTPS, HTTPS/S3 und gemountete Laufwerke (seit 1.5.0) |
 | `manifest.json`, `sw.js` | PWA-Metadaten und Service-Worker-Verhalten |
 | `.famtask_cfg.php` | Lokale Datenbankverbindung; wird nicht versioniert |
@@ -109,6 +110,38 @@ Der pro-Kind-Zustand liegt dagegen in den synchronisierten Familiendaten unter
 ```
 Titel werden ueber ihre `src` identifiziert, weil die Laufzeit-ID beim Neuladen
 neu erzeugt wird.
+
+### Metadaten und Cover
+
+`id3.php` liest Titel, Interpret, Album und ein eingebettetes Bild direkt aus
+den Dateien (ID3v2.3/2.4 und ID3v1 fuer MP3, `ilst`-Atome fuer M4A/MP4) – ohne
+fremde Bibliothek. Die Ergebnisse liegen in `audio/.tags-cache.json`, damit
+nicht bei jedem Aufruf alle Dateien geoeffnet werden. Ein eingebettetes Bild
+wird nach `audio/.covers/<Ordnername>.jpg` extrahiert, wenn dort noch keins
+liegt; ein von Hand abgelegtes Cover bleibt unangetastet.
+
+`action=tracks` liefert pro Titel `artist`, `albumTag` und `hasCover` mit.
+`album` bleibt bewusst der Ordnername – er ist der Schluessel fuer Cover und
+Album-Zuordnung.
+
+Die Suche nach einem fehlenden Cover laeuft serverseitig in `jukebox.php`
+(`action=cover`) und arbeitet nach festen Regeln:
+
+1. Der Ordnername zaehlt nur dann als Album-Suchbegriff, wenn er wie ein Album
+   aussieht (Ziffer oder mindestens zwei Woerter) oder ein ID3-Album ihn
+   bestaetigt. "Mami" oder "Papi" sind Sammlungen, keine Alben.
+2. Album-Treffer werden gegen Interpret **und** Albumname geprueft; der
+   Interpret des Funds muss im gesuchten Namen aufgehen. Das schliesst fremde
+   Alben gleichen Namens aus.
+3. Fuer den Titel wird der Dateiname zerlegt (`Interpret - Titel`), Zusaetze wie
+   `(Lyrics)` fallen weg. Der Interpret darf teilweise passen (Duette), der
+   Titel muss vollstaendig im Fund stecken.
+4. MusicBrainz wird nur mit einem aussagekraeftigen Suchbegriff befragt.
+5. Liefert der Ordnername kein Album, sucht der Client den einzelnen Titel.
+
+Passt nichts sicher, bleibt der Titel ohne Cover (`{"coverUrl":null}`) – lieber
+ein farbiger Platzhalter als ein falsches Bild. Der Client speichert Treffer in
+`localStorage` unter `ft-cover-cache`: Treffer dauerhaft, Fehlschlaege einen Tag.
 
 ## Container-Zusammensetzung
 

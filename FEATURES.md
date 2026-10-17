@@ -49,7 +49,11 @@ gemeinsam, jeder Knabe hat aber einen eigenen Player-Zustand.
 - **Schwebender Mini-Player** mit Cover, Fortschritt und Vor/Zurueck
 - **Favoriten je Kind** ueber ein Herz an jedem Titel, gebuendelt im Reiter „Meine Lieder"
 - Je Kind gespeichert: letzter Titel, letztes Album, eigene Album-Reihenfolge, Favoriten
-- Cover-Art-Suche ueber MusicBrainz, Cover Art Archive und iTunes
+- Cover-Art-Suche ueber iTunes, Deezer und MusicBrainz (Cover Art Archive); ein in
+  der Datei eingebettetes Bild hat Vorrang
+- Titel, Interpret und Album werden aus den Datei-Tags gelesen (ID3v2.3/2.4,
+  ID3v1 fuer MP3, iTunes-Atome fuer M4A/MP4). Fehlen die Tags, gelten Dateiname
+  und Ordnername.
 - Erlaubte Formate: mp3, wav, ogg, m4a, flac, aac, opus
 
 Der Jukebox-Zustand liegt serverseitig im Schluessel `ft-jb` und wird wie die
@@ -102,8 +106,14 @@ und HTTPS spricht PHP dagegen selbst.
 - `AudioPlayerScreen` und die Spiele werden bei jedem Rendern neu erzeugt. Das ist
   performanceunkritisch, zwingt aber UI-Zustand in `FamTask` statt in die
   Komponente zu legen.
-- Der Suchbegriff fuer Cover wird nach einem Bindestrich abgeschnitten. Bei Titeln
-  der Form `Interpret - Titel` kann dadurch ein unpassendes Cover gewaehlt werden.
+- Ein Ordnername dient nur dann als Album-Suchbegriff, wenn er wie ein Album
+  aussieht (Ziffer oder mindestens zwei Woerter). Enthaelt ein Ordner nur einen
+  Namen wie `Mami` oder `Papi`, wird stattdessen der Titel gesucht.
+- Ohne Album-Cover wird pro Titel gesucht; der Dateiname wird dafuer in
+  `Interpret - Titel` zerlegt und Zusaetze wie `(Lyrics)` werden entfernt.
+- Bleibt ein Treffer unklar, zeigt FamTask lieber einen farbigen Platzhalter als
+  ein falsches Bild. Bei sehr allgemeinen Namen ("Universum") oder erfundenen
+  Angaben bleibt es deshalb ohne Cover.
 - S3 wird nur ueber direkte oder presigned HTTPS-URLs unterstuetzt, nicht ueber
   SigV4-Signierung mit Bucket und Access Key.
 - Ein automatischer Re-Sync externer Quellen (Cronjob) fehlt; Importe laufen von Hand.
