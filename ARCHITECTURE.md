@@ -67,6 +67,14 @@ Grenzwerte: 5000 Dateien, 2 GB gesamt und 1 GB je Datei pro Import, maximal
 
 Dies ist eine Orientierung und keine vollstaendige API-Spezifikation. HTTP-Methode, Payload und Berechtigungen sind am jeweiligen Handler in `api.php` zu pruefen.
 
+**Berechtigungen (Sicherheitsfix vom 2026-10-17):** Eine Admin-Anmeldung
+verlangen `install`/`testdb` (nur bei bestehender Installation), `update`,
+`settings`, `save_settings`, `families`, `rename_family`, `delete_family`,
+`stats`, `backup`, `restore` und `ytplaylist`. Ohne Anmeldung erreichbar bleiben
+`status`, `track`, `ical`, `verify`, `register` und der Datenzugriff ohne
+`action`. `remote.php` verlangt ausser `status` ebenfalls eine Admin-Anmeldung.
+Details siehe [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Persistenz
 
 Die App legt Tabellen bei der Installation beziehungsweise per Migration an. Aktuelle Tabellenfamilien im Quellcode:
@@ -77,6 +85,8 @@ Die App legt Tabellen bei der Installation beziehungsweise per Migration an. Akt
 - `famtask_stats`: Aufgaben-, Medienzeit- und Statistikereignisse
 - `famtask_ical_events`: importierte Kalendertermine
 - `famtask_remotes`: externe Musikquellen mit Zugangsdaten (seit 1.5.0)
+- `famtask_admin_sessions`: Admin-Sitzungen als Zufalls-Token (seit Sicherheitsfix 2026-10-17)
+- `famtask_auth_guard`: Fehlversuche pro IP fuer die Brute-Force-Bremse (seit Sicherheitsfix 2026-10-17)
 
 `famtask_remotes` ist bewusst eine eigene Tabelle und nicht Teil von
 `famtask_data`: die darin liegenden Zugangsdaten duerfen nicht ueber den

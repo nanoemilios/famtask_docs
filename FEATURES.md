@@ -79,7 +79,7 @@ und HTTPS spricht PHP dagegen selbst.
 ## Administration
 
 - Familienverwaltung und globale Einstellungen
-- Admin-PIN-Schutz laut README
+- Admin-PIN-Schutz serverseitig: administrative `api.php`-Aktionen und `remote.php` verlangen eine Anmeldung (Session-Cookie oder Header `X-Admin-Pin`) – siehe [DEPLOYMENT.md](DEPLOYMENT.md)
 - Reiter „Musikquellen" mit Verbindungs-Test, Ordner-Ansicht und Import
 - Backup/Restore, Statistiken, Installation und Datenbank-Updates ueber `api.php`
 

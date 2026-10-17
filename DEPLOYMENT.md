@@ -78,6 +78,34 @@ Die Compose-Datei selbst definiert App `8888`, phpMyAdmin `8081` und Datenbank
 ## Betrieb und Sicherheit
 
 - **FamTask hat keine echte Benutzerverwaltung.** Der Familiencode ist keine Authentifizierung; er steht im Klartext im lokalStorage jedes Geraets, und jeder, der ihn kennt, kann ueber `api.php` Daten lesen und schreiben. **Nicht ungeschuetzt ins Internet stellen** – nur im Heimnetz betreiben oder einen Reverse-Proxy mit Basic-Auth davorsetzen.
+
+### Admin-Authentifizierung (Sicherheitsfix vom 2026-10-17)
+
+- **Administrative Endpunkte verlangen jetzt eine Anmeldung.** Betroffen sind in
+  `api.php`: `settings`, `save_settings`, `families`, `rename_family`,
+  `delete_family`, `backup`, `restore`, `update`, `stats`, `ytplaylist` sowie
+  `install`/`testdb` bei bestehender Installation. In `remote.php` gilt das fuer
+  alle Aktionen ausser `status` (`list`, `save`, `delete`, `browse`, `test`,
+  `import`). Vorher waren diese Endpunkte **ohne** Anmeldung erreichbar: der
+  Admin-PIN war im Klartext auslesbar, Familien liessen sich loeschen und die
+  Datenbank-Konfiguration ueberschreiben.
+- **Sitzung statt vorhersagbarem Cookie.** Die Anmeldung nutzt den Admin-PIN und
+  legt die Sitzung als Zufalls-Token in der neuen Tabelle
+  `famtask_admin_sessions` ab (30 Tage gueltig). Das frueher verwendete, aus dem
+  vierstelligen PIN berechenbare Cookie `sha1('ft_admin_' + PIN)` wird nur noch
+  uebergangsweise akzeptiert.
+- **Brute-Force-Bremse:** maximal 8 Fehlversuche pro IP in 15 Minuten (neue
+  Tabelle `famtask_auth_guard`). Ein korrekter PIN funktioniert auch waehrend
+  einer Sperre, damit sich niemand selbst ausschliesst.
+- Nach dem Update einmal neu anmelden unter `api.php?action=admin`. Die App kann
+  die Admin-PIN alternativ pro Anfrage im Header `X-Admin-Pin` senden; das nutzt
+  sie fuer „Familie umbenennen/loeschen" und den Reiter Musikquellen.
+- **Weiterhin ohne Anmeldung:** die Familiendaten selbst (`api.php` ohne
+  `action`, zum Beispiel `api.php?fc=FAM001`) sowie `status`, `track`, `ical`,
+  `verify` und `register` – diese braucht die App im normalen Betrieb. Wer den
+  Familiencode kennt, kann diese Daten daher weiterhin lesen und schreiben.
+- **Vor dem Update** ein Backup der Datenbank anlegen. Die beiden neuen Tabellen
+  legt die App beim ersten Zugriff selbst an.
 - Echte Passwoerter setzen; keine Beispielwerte oder Container-Defaults fuer produktive Systeme verwenden.
 - Datenbank-Port `3307` und phpMyAdmin-Port `8081` nicht unnoetig oeffentlich freigeben. Zugriff auf App und Admin-Oberflaeche ueber HTTPS und geeignete Zugriffskontrollen absichern.
 - `docker/.env`, `.famtask_cfg.php`, Datenbank-Dumps und persoenliche Familiendaten vertraulich behandeln.
