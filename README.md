@@ -7,6 +7,7 @@ Zentrale Dokumentation fuer FamTask. Diese Sammlung beschreibt die Anwendung, ih
 - [Produkt und Funktionsumfang](FEATURES.md)
 - [Architektur und Datenmodell](ARCHITECTURE.md)
 - [Installation, Updates und Betrieb](DEPLOYMENT.md)
+- [Performance: Lade- und Antwortzeiten](PERFORMANCE.md)
 - [Workspace- und Online-Abgleich](WORKSPACE_COMPARISON.md)
 
 ## Projekt-Repositories
