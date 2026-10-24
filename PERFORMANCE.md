@@ -7,9 +7,11 @@ Ziel: Die App soll auf einem Mittelklasse-Handy in unter 2,5 s bedienbar sein
 Die Landingpage ist heute schon schnell; sie dient als Referenz, wie die App
 aussehen kann, wenn kein Transpiler im Weg steht.
 
-> **Stand 2026-10-24:** Stufe 2 (Babel raus) ist umgesetzt. Erster Aufruf
-> rund 185 KB gzip statt 628 KB; DOMContentLoaded im Test 0,45 s statt 15-32 s.
-> Stufe 1 (Cache-Header, Service Worker) und Stufe 3 (Sync) sind offen.
+> **Stand 2026-10-24:** Stufe 1 (Cache-Header, Service Worker) und Stufe 2
+> (Babel raus) sind umgesetzt. Erster Aufruf rund 185 KB gzip statt 628 KB;
+> DOMContentLoaded im Test 0,45 s statt 15-32 s. Beim Wiederbesuch kommen alle
+> Dateien aus dem Service-Worker-Cache (0 Byte Netzverkehr), die App startet
+> auch offline aus dem Cache. Stufe 3 (Sync) ist offen.
 
 ## 1. Messwerte (vor Stufe 2)
 
@@ -76,25 +78,44 @@ dominierende Faktor, auch wenn die absolute Zeit auf echter Hardware kleiner ist
 
 Reihenfolge nach Wirkung pro Aufwand. Jede Stufe ist einzeln auslieferbar.
 
-### Stufe 1 - Sofort, ohne Umbau (ca. 0,5 Tag)
+### Stufe 1 - Sofort, ohne Umbau (ca. 0,5 Tag) - umgesetzt
 
 1. **`.htaccess`: Kompression und Cache-Dauern**
    - `mod_deflate` fuer `text/html`, `text/css`, `application/javascript`,
-     `application/json`, `image/svg+xml`, `font/woff2` (bereits komprimiert:
-     ausnehmen).
-   - `mod_expires`: `icons/*` und `vendor/fonts/*` ein Jahr (`immutable`),
-     CSS/JS eine Woche, HTML `no-cache` (damit Updates ankommen).
+     `application/json`, `image/svg+xml`; `font/woff2` ist bereits
+     komprimiert und bleibt aussen vor.
+   - `mod_expires`/`mod_headers`: `icons/*` und `vendor/fonts/*` ein Jahr
+     (`immutable`), CSS/JS eine Woche, HTML und `sw.js` `no-cache`, `*.php`
+     `no-store`.
    - Wirkung: erster Aufruf 2,6 MB -> 628 KB; Wiederbesuch ohne Netzverkehr
-     fuer unveraenderte Dateien. Fuer nginx-Hoster denselben Block in
-     `DEPLOYMENT.md` dokumentieren.
+     fuer unveraenderte Dateien. Fuer nginx-Hoster steht derselbe Block in
+     `DEPLOYMENT.md`.
 2. **Service Worker mit App-Shell-Cache**
-   - `index.html`: network-first mit Cache-Fallback (Updates kommen an).
-   - `vendor/*`, `icons/*`, `styles.css`, `lang/*`: cache-first.
+   - `index.html`: network-first mit Cache-Fallback (Updates kommen an, 5xx
+     wird wie offline behandelt); Seitenaufrufe werden unter `index.html` im
+     Cache abgelegt.
+   - `app.js`, `vendor/*`, `icons/*`, `styles.css`, `i18n.js`, `lang/*`:
+     cache-first, im Hintergrund wird aufgefrischt.
    - `api.php`, `jukebox.php`, `remote.php`: nie cachen.
+   - Der Worker liest den `?v=`-Hash beim Installieren aus `index.html` und
+     legt genau diese `app.js` ab; `index.html` und `de.js` werden
+     vorab geladen. `?dev=1` umgeht den Cache, damit beim Entwickeln nie ein
+     alter Stand haengt.
+   - Die Sprachdatei laedt `index.html` jetzt per `document.write` statt per
+     synchronem XHR: nur so kann der Service Worker sie aus dem Cache liefern
+     (synchrone XHR-Anfragen gehen am Worker vorbei). Damit startet die App
+     auch offline in der zuletzt gewaehlten Sprache.
    - Wirkung: Wiederbesuch startet in wenigen hundert Millisekunden, App-Shell
      ist offline verfuegbar; Schreibvorgaenge laufen ueber die bestehende
      Offline-Logik.
    - Risiko: Cache-Versionierung. Bei jedem Release `CACHE_VERSION` erhoehen.
+
+   Gemessen (lokal, PHP-Dev-Server ohne gzip, Desktop-Chrome):
+   - Wiederbesuch: alle Geruest-Dateien mit `transferSize` 0; uebrig bleiben
+     der HTML-Aufruf und der API-Verkehr.
+   - Offline (Server gestoppt): Seite startet aus dem Cache, DOMContentLoaded
+     0,14-0,2 s, Kind-Auswahl und gewaehlte Sprache (Japanisch) funktionieren.
+   - `?dev=1` laedt weiterhin Babel und `src/app.jsx`, ohne Cache dazwischen.
 
 ### Stufe 2 - Babel entfernen (groesster Hebel, ca. 1 Tag) - umgesetzt
 
@@ -167,9 +188,9 @@ Vor und nach jeder Stufe dieselbe Messung, damit die Wirkung belegbar bleibt:
 
 1. **Stufe 2 (umgesetzt)** - groesster Einzelgewinn: die App startet ohne
    Transpiler, auch auf aelteren Handys.
-2. **Stufe 1 als Naechstes** - unabhaengig von der App-Logik, spuerbar bei
+2. **Stufe 1 (umgesetzt)** - unabhaengig von der App-Logik, spuerbar bei
    jedem Wiederbesuch und Voraussetzung dafuer, dass `app.js` lange im
    Browser-Cache bleiben darf.
-3. **Stufe 3 danach** - wichtig fuer Mobilfunk und Akku, braucht aber einen
-   sauberen Mehrgeraete-Test.
+3. **Stufe 3 als Naechstes** - wichtig fuer Mobilfunk und Akku, braucht aber
+   einen sauberen Mehrgeraete-Test.
 4. Stufe 4 nur, wenn die ersten drei stehen.

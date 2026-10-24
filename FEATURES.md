@@ -89,7 +89,8 @@ und HTTPS spricht PHP dagegen selbst.
 
 ## Plattform
 
-- Progressive Web App (PWA) mit Manifest und Service Worker
+- Progressive Web App (PWA) mit Manifest und Service Worker; App-Shell-Cache,
+  dadurch startet die App beim Wiederbesuch ohne erneuten Download und auch offline
 - Mehrsprachige Oberflaeche; Sprachdateien liegen im App-Ordner `lang/`
 - Responsive, fuer Mobilgeraete ausgelegte Oberflaeche
 - Echtzeit-Synchronisierung zwischen Geraeten ueber die gemeinsame Datenbank

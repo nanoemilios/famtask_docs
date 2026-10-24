@@ -22,6 +22,66 @@ Der Release `v1.4.0` enthaelt `famtask.zip`; der SHA-256-Wert ist im [Abgleichsb
 
 Die Konfigurationsdatei enthaelt Geheimnisse und gehoert nicht in Git oder in dieses Doku-Repository.
 
+### Cache, Kompression und Service Worker
+
+Die App bringt eine `.htaccess` mit (Apache 2.4, `AllowOverride` muss
+`Indexes` und `FileInfo` erlauben):
+
+| Datei | Cache-Dauer |
+|---|---|
+| `*.html`, `sw.js` | `no-cache, must-revalidate` - Updates kommen sofort an |
+| `*.css`, `*.js` | 1 Woche |
+| `icons/*`, `vendor/fonts/*` | 1 Jahr, `immutable` |
+| `*.php` | `no-store` - API-Antworten enthalten Familiendaten |
+| gzip | HTML, CSS, JS, JSON, SVG; `woff2` bleibt unkomprimiert |
+
+nginx ignoriert `.htaccess`; dort gehoeren diese Zeilen in den
+`server`-Abschnitt:
+
+```nginx
+gzip on;
+gzip_vary on;
+gzip_min_length 1024;
+gzip_types text/html text/css text/plain application/javascript
+           application/json application/manifest+json image/svg+xml;
+
+# exakter Treffer gewinnt gegen die Regex-Locations weiter unten
+location = /sw.js {
+    add_header Cache-Control "no-cache, must-revalidate";
+}
+location ~* \.(?:css|js)$ {
+    add_header Cache-Control "public, max-age=604800";
+}
+location ~* \.html$ {
+    add_header Cache-Control "no-cache, must-revalidate";
+}
+location ~* \.php$ {
+    add_header Cache-Control "no-store" always;
+}
+location ~* \.(?:png|svg|ico|woff2)$ {
+    add_header Cache-Control "public, max-age=31536000, immutable";
+}
+```
+
+Hinweise:
+
+- Service Worker laufen nur in einem sicheren Kontext: HTTPS oder `localhost`.
+  Auf einem reinen HTTP-Server (z. B. `http://192.168.1.10:8080`) wird der
+  Worker nicht registriert; die App funktioniert normal weiter, nur ohne
+  Offline-Cache. Fuer den Heimgebrauch empfiehlt sich ein Reverse-Proxy mit
+  TLS oder der Zugriff ueber `localhost`.
+- Der Service Worker (`sw.js`) legt `index.html`, `app.js`, Styles, Schriften,
+  Icons und die Sprachdateien im Browser ab. **Nach jedem Release
+  `CACHE_VERSION` in `sw.js` erhoehen**, sonst liefert der Cache weiter den
+  alten Stand.
+- Meldet der Hoster nach dem Update einen 500er, erlaubt er `Header` oder
+  `ExpiresByType` nicht. Dann in `.htaccess` die Bloecke
+  `<IfModule mod_headers.c>` und `<IfModule mod_expires.c>` entfernen - die App
+  laeuft ohne sie, nur ohne Cache-Vorteil.
+- nginx ersetzt mit `add_header` innerhalb einer `location` die geerbten
+  Header; Sicherheits-Header (HSTS, X-Frame-Options) dort bei Bedarf erneut
+  setzen.
+
 ### Externe Musikquellen einrichten
 
 WebDAV, FTP/FTPS und HTTPS/S3 brauchen keine Shell-Zugriffe – Quelle unter

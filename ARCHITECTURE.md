@@ -14,7 +14,7 @@
 | `jukebox.php` | Backend-Endpunkte der Jukebox: Album-Scan, Streaming, Cover, Upload, Verwaltung |
 | `id3.php` | Metadaten aus Audiodateien lesen: ID3v2.3/2.4, ID3v1 (MP3) und M4A/MP4, samt eingebettetem Cover |
 | `remote.php` | Externe Musikquellen: WebDAV, FTP/FTPS, HTTPS/S3 und gemountete Laufwerke (seit 1.5.0) |
-| `manifest.json`, `sw.js` | PWA-Metadaten und Service-Worker-Verhalten |
+| `manifest.json`, `sw.js` | PWA-Metadaten und Service Worker (App-Shell-Cache, offline startfähig) |
 | `.famtask_cfg.php` | Lokale Datenbankverbindung; wird nicht versioniert |
 
 Die Anwendung ist in getrennte Repositories aufgeteilt: App, Web-Installer, Docker-Setup, Proxmox-Installer und diese Dokumentation. Das Docker-Setup mountet das App-Repository nach `/var/www/html`; Setup-Skripte erzeugen dort die lokale Datenbankkonfiguration.
@@ -26,6 +26,15 @@ erzeugt daraus `app.js`; `index.html` laedt nur noch diese Datei. Ohne Build
 springt die Seite auf den Quelltext-Weg: `?dev=1` an der URL (oder eine fehlende
 `app.js`) laedt `vendor/babel.min.js` und uebersetzt `src/app.jsx` im Browser.
 Der Build schreibt einen Inhalts-Hash als `?v=...` in `index.html`.
+
+Ausgeliefert wird über drei Schichten: `.htaccess` (Kompression, Cache-Dauern),
+der Service Worker `sw.js` (App-Shell-Cache) und der Inhalts-Hash am
+`app.js`-Aufruf. Der Service Worker holt `index.html` netzwerk-zuerst (Updates
+kommen an, offline greift der Cache), bedient `app.js`, `styles.css`, `i18n.js`,
+`lang/`, `vendor/` und `icons/` cache-zuerst und lässt `api.php`, `jukebox.php`
+sowie `remote.php` immer durch. Er liest den `?v=`-Hash beim Installieren aus
+`index.html` und legt genau diese `app.js` ab; nach einem Release wird
+`CACHE_VERSION` in `sw.js` erhoeht, wodurch der alte Cache verschwindet.
 
 `FamTask` ist die einzige Top-Level-Komponente und haelt den gesamten Zustand;
 Unterbildschirme werden ueber ein `ui`-Prop versorgt.
