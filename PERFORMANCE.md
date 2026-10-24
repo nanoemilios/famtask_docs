@@ -7,7 +7,11 @@ Ziel: Die App soll auf einem Mittelklasse-Handy in unter 2,5 s bedienbar sein
 Die Landingpage ist heute schon schnell; sie dient als Referenz, wie die App
 aussehen kann, wenn kein Transpiler im Weg steht.
 
-## 1. Messwerte
+> **Stand 2026-10-24:** Stufe 2 (Babel raus) ist umgesetzt. Erster Aufruf
+> rund 185 KB gzip statt 628 KB; DOMContentLoaded im Test 0,45 s statt 15-32 s.
+> Stufe 1 (Cache-Header, Service Worker) und Stufe 3 (Sync) sind offen.
+
+## 1. Messwerte (vor Stufe 2)
 
 Lokal gemessen (gzip, HTTP/1.0-Testserver ohne Keep-Alive, Desktop-Chrome).
 Die Zahlen sind ein Vergleichsmassstab, kein Laborergebnis fuer Mobilgeraete.
@@ -92,7 +96,7 @@ Reihenfolge nach Wirkung pro Aufwand. Jede Stufe ist einzeln auslieferbar.
      Offline-Logik.
    - Risiko: Cache-Versionierung. Bei jedem Release `CACHE_VERSION` erhoehen.
 
-### Stufe 2 - Babel entfernen (groesster Hebel, ca. 1 Tag)
+### Stufe 2 - Babel entfernen (groesster Hebel, ca. 1 Tag) - umgesetzt
 
 - JSX aus `index.html` nach `src/app.jsx` auslagern und mit **esbuild**
   vorbauen (`tools/build_app.mjs`, Node ist im Projektumfeld vorhanden).
@@ -103,7 +107,11 @@ Reihenfolge nach Wirkung pro Aufwand. Jede Stufe ist einzeln auslieferbar.
 - Wirkung: 554 KB gzip JS und 70 KB gzip HTML weniger, kein Transpile beim
   Start. Erwartung: DOMContentLoaded/LCP unter 1 s statt Sekunden, TBT nahe 0.
 - Aufwand im Alltag: nach Aenderungen `node tools/build_app.mjs` (oder
-  `--watch`); README und `DEPLOYMENT.md` bekommen einen Build-Hinweis.
+  `--watch`). Das gebaute `app.js` liegt im Repository; ohne Build faellt die
+  Seite auf `src/app.jsx` plus `vendor/babel.min.js` zurueck (`?dev=1`).
+- Umgesetzt: erster Aufruf 185 KB gzip (app.js 54 KB, react-dom 43 KB,
+  Schriften 55 KB, Rest klein), `index.html` 2,9 KB gzip, kein Babel mehr im
+  Normalfall. Der Build schreibt einen Inhalts-Hash als `?v=...` in `index.html`.
 
 ### Stufe 3 - Sync und API (ca. 1 Tag)
 
@@ -157,10 +165,11 @@ Vor und nach jeder Stufe dieselbe Messung, damit die Wirkung belegbar bleibt:
 
 ## 6. Empfehlung
 
-1. **Stufe 1 sofort** - unabhaengig von allem anderen, kein Risiko fuer die
-   App-Logik, spuerbar bei jedem Wiederbesuch.
-2. **Stufe 2 als Naechstes** - groesster Einzelgewinn und Voraussetzung
-   dafuer, dass die App auf aelteren Handys ueberhaupt fluessig startet.
+1. **Stufe 2 (umgesetzt)** - groesster Einzelgewinn: die App startet ohne
+   Transpiler, auch auf aelteren Handys.
+2. **Stufe 1 als Naechstes** - unabhaengig von der App-Logik, spuerbar bei
+   jedem Wiederbesuch und Voraussetzung dafuer, dass `app.js` lange im
+   Browser-Cache bleiben darf.
 3. **Stufe 3 danach** - wichtig fuer Mobilfunk und Akku, braucht aber einen
    sauberen Mehrgeraete-Test.
 4. Stufe 4 nur, wenn die ersten drei stehen.

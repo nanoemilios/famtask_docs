@@ -4,8 +4,12 @@
 
 | Komponente | Aufgabe |
 |---|---|
-| `index.html`, `styles.css`, `i18n.js`, `lang/` | Browseroberflaeche, Styles und Uebersetzungen |
-| `vendor/react*.production.min.js`, `vendor/babel.min.js` | Lokal mitgelieferte React-Laufzeit und JSX-Transpilierung |
+| `index.html`, `styles.css`, `i18n.js`, `lang/` | Browseroberflaeche, Styles und Uebersetzungen; `index.html` laedt `app.js` |
+| `src/app.jsx` | React-Quelltext (JSX), die Quelle der Wahrheit |
+| `app.js` | Vorgebaute App aus `src/app.jsx`; wird ausgeliefert, nicht bearbeitet |
+| `tools/build_app.mjs` | Baut `app.js` mit dem mitgelieferten Babel (kein npm noetig) |
+| `vendor/react*.production.min.js` | Lokal mitgelieferte React-Laufzeit |
+| `vendor/babel.min.js` | Nur fuer den Entwicklungsmodus (`?dev=1`) und den Build |
 | `api.php` | Installation, Datenzugriff, Einstellungen, Statistiken, Backup/Restore und iCal-Proxy |
 | `jukebox.php` | Backend-Endpunkte der Jukebox: Album-Scan, Streaming, Cover, Upload, Verwaltung |
 | `id3.php` | Metadaten aus Audiodateien lesen: ID3v2.3/2.4, ID3v1 (MP3) und M4A/MP4, samt eingebettetem Cover |
@@ -17,9 +21,14 @@ Die Anwendung ist in getrennte Repositories aufgeteilt: App, Web-Installer, Dock
 
 ## Frontend-Aufbau
 
-`index.html` enthaelt die gesamte Anwendung als einzelne Babel-Transpilation ohne
-Build-Schritt. `FamTask` ist die einzige Top-Level-Komponente und haelt den
-gesamten Zustand; Unterbildschirme werden ueber ein `ui`-Prop versorgt.
+`src/app.jsx` enthaelt die gesamte Anwendung. Der Build (`node tools/build_app.mjs`)
+erzeugt daraus `app.js`; `index.html` laedt nur noch diese Datei. Ohne Build
+springt die Seite auf den Quelltext-Weg: `?dev=1` an der URL (oder eine fehlende
+`app.js`) laedt `vendor/babel.min.js` und uebersetzt `src/app.jsx` im Browser.
+Der Build schreibt einen Inhalts-Hash als `?v=...` in `index.html`.
+
+`FamTask` ist die einzige Top-Level-Komponente und haelt den gesamten Zustand;
+Unterbildschirme werden ueber ein `ui`-Prop versorgt.
 
 **Wichtige Konvention:** Komponenten, die eigene Eingabefelder enthalten, muessen
 auf oberster Ebene definiert sein. Definiert eine Komponente ihre Eingabefelder
