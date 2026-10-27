@@ -10,9 +10,9 @@ Der Release `v1.5.0` enthaelt `famtask.zip`; die lokale Konfiguration
 `.famtask_cfg.php` und der Audio-Ordner sollen bei Updates erhalten bleiben.
 
 > **Stand 2026-10-27:** `famtask.zip` am Release `v1.5.0` wurde durch einen
-> aktuellen Build ersetzt (1 492 640 Bytes, 57 Eintraege, SHA-256
-> `7c625b37155d5c3882dc982ed0c2a58cc7946164cab423858a9da53933fa06be`, Commit
-> `b770b6c`). Enthalten sind jetzt auch `app.js`, `icons/` und `src/app.jsx`.
+> aktuellen Build ersetzt (1 492 881 Bytes, 57 Eintraege, SHA-256
+> `e8dae90d68271b5a506909e1f25889ec2d16ceff8baa639b299b9ce7949a31f6`, Commit
+> `ee83920`). Enthalten sind jetzt auch `app.js`, `icons/` und `src/app.jsx`.
 > `APP_VERSION` bleibt `1.5.0`; der Installer bietet bestehenden Installationen
 > deshalb **kein** Update an – neue Dateien kommen nur bei Neuinstallation oder
 > manuellem Update an. Details im
