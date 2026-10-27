@@ -6,13 +6,17 @@
 
 Der [Web-Installer](https://github.com/nanoemilios/famtask_installer) ist fuer Shared Hosting vorgesehen. Er prueft PHP-Voraussetzungen, laedt das App-ZIP aus dem FamTask-Release und bietet Installation beziehungsweise Update an. Voraussetzung laut Projekt: PHP 8.0+, ZipArchive, cURL oder `allow_url_fopen` sowie Schreibrechte.
 
-Der Release `v1.4.0` enthaelt `famtask.zip`; der SHA-256-Wert ist im [Abgleichsbericht](WORKSPACE_COMPARISON.md) festgehalten. Die lokale Konfiguration `.famtask_cfg.php` und der Audio-Ordner sollen bei Updates erhalten bleiben.
+Der Release `v1.5.0` enthaelt `famtask.zip`; die lokale Konfiguration
+`.famtask_cfg.php` und der Audio-Ordner sollen bei Updates erhalten bleiben.
 
-> **Stand 1.5.0:** Der Quellcode im App-Repository ist auf `1.5.0`, das Release-Artefakt
-> `famtask.zip` ist aber weiterhin `v1.4.0`. Der Installer laedt von
-> `releases/latest/download/famtask.zip` und meldet deshalb noch `v1.4.0`, bis ein
-> neues Release veroeffentlicht wird. Fuer die neuen Funktionen ist daher entweder
-> ein neues Release noetig oder eine manuelle Installation aus dem Git-Repository.
+> **Stand 2026-10-27:** `famtask.zip` am Release `v1.5.0` wurde durch einen
+> aktuellen Build ersetzt (1 492 640 Bytes, 57 Eintraege, SHA-256
+> `7c625b37155d5c3882dc982ed0c2a58cc7946164cab423858a9da53933fa06be`, Commit
+> `b770b6c`). Enthalten sind jetzt auch `app.js`, `icons/` und `src/app.jsx`.
+> `APP_VERSION` bleibt `1.5.0`; der Installer bietet bestehenden Installationen
+> deshalb **kein** Update an – neue Dateien kommen nur bei Neuinstallation oder
+> manuellem Update an. Details im
+> [Installer-README](https://github.com/nanoemilios/famtask_installer#versionsstand-150-veroeffentlicht-artefakt-am-2026-10-27-aktualisiert).
 
 ### Manuelle App-Installation
 

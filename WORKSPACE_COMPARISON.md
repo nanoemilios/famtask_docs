@@ -122,6 +122,14 @@ Betroffene Aufrufe, damals gezaehlt:
   gehaengt werden – der Installer laedt von `releases/latest/download/famtask.zip`.
   `APP_VERSION` im Installer steht bereits auf `v1.5.0`.
 
+  > **Nachtrag 2026-10-27:** Das Release `v1.5.0` ist veroeffentlicht, das Asset
+  > `famtask.zip` wurde am 27.10. durch einen aktuellen Build ersetzt (1 492 640
+  > Bytes, 57 Eintraege, SHA-256
+  > `7c625b37155d5c3882dc982ed0c2a58cc7946164cab423858a9da53933fa06be`, Commit
+  > `b770b6c`). Neu enthalten: `app.js`, `icons/` und `src/app.jsx`.
+  > `APP_VERSION` bleibt `1.5.0`, bestehende Installationen erhalten also kein
+  > Update-Angebot.
+
   Geprueft wurde das Archiv durch Entpacken, PHP-Syntaxpruefung aller drei
   PHP-Dateien, Laden aller 19 Sprachdateien und einen Start der App aus dem
   entpackten Stand (`api.php` meldet `app_version` `1.5.0`).
