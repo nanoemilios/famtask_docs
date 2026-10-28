@@ -9,9 +9,9 @@ Der [Web-Installer](https://github.com/nanoemilios/famtask_installer) ist fuer S
 Der Release `v1.5.0` enthaelt `famtask.zip`; die lokale Konfiguration
 `.famtask_cfg.php` und der Audio-Ordner sollen bei Updates erhalten bleiben.
 
-> **Stand 2026-10-27:** `famtask.zip` am Release `v1.5.0` wurde durch einen
-> aktuellen Build ersetzt (1 492 881 Bytes, 57 Eintraege, SHA-256
-> `e8dae90d68271b5a506909e1f25889ec2d16ceff8baa639b299b9ce7949a31f6`, Commit
+> **Stand 2026-10-28:** `famtask.zip` am Release `v1.5.0` wurde durch einen
+> aktuellen Build ersetzt (1 494 470 Bytes, 57 Eintraege, SHA-256
+> `f288b84f530d55b00c82c1124aef3a34211137995795b8145c84abf59b2e2d6d`, Commit
 > `ee83920`). Enthalten sind jetzt auch `app.js`, `icons/` und `src/app.jsx`.
 > `APP_VERSION` bleibt `1.5.0`; der Installer bietet bestehenden Installationen
 > deshalb **kein** Update an – neue Dateien kommen nur bei Neuinstallation oder
