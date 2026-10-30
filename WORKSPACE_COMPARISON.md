@@ -123,9 +123,9 @@ Betroffene Aufrufe, damals gezaehlt:
   `APP_VERSION` im Installer steht bereits auf `v1.5.0`.
 
   > **Nachtrag 2026-10-27:** Das Release `v1.5.0` ist veroeffentlicht, das Asset
-  > `famtask.zip` wurde am 28.10. durch einen aktuellen Build ersetzt (1 494 470
+  > `famtask.zip` wurde am 28.10. durch einen aktuellen Build ersetzt (1 495 368
   > Bytes, 57 Eintraege, SHA-256
-  > `f288b84f530d55b00c82c1124aef3a34211137995795b8145c84abf59b2e2d6d`, Commit
+  > `26c3f9fb1b2f99903b6e89ed496393dbdca93907ed633796a98f2d52b2b1e6f3`, Commit
   > `ee83920`). Neu enthalten: `app.js`, `icons/` und `src/app.jsx`.
   > `APP_VERSION` bleibt `1.5.0`, bestehende Installationen erhalten also kein
   > Update-Angebot.
